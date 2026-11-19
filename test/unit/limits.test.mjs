@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   FREE_REQUESTS_PER_DAY,
@@ -39,4 +40,15 @@ test('the helpers count requests the way the page sends them', () => {
   assert.equal(requestsPerDay(15 * 60 * 1000), 96);
   assert.equal(requestsPerDay(14 * 60 * 1000), 103);
   assert.equal(requestsPerMinute(1000), 60);
+});
+
+test('the README states the same limits and interval as limits.js', () => {
+  const readme = readFileSync(new URL('../../README.md', import.meta.url), 'utf8');
+  assert.ok(
+    readme.includes(`allows ${FREE_REQUESTS_PER_MINUTE} requests a minute and ${FREE_REQUESTS_PER_DAY} a day`),
+    'the README quota sentence no longer matches limits.js',
+  );
+  const minutes = REFRESH_INTERVAL_MS / 60000;
+  assert.ok(readme.includes(`refreshes every ${minutes} minutes`), 'the README interval no longer matches limits.js');
+  assert.ok(readme.includes(`That is ${requestsPerDay(REFRESH_INTERVAL_MS)} requests in 24 hours`), 'the README daily count no longer matches');
 });

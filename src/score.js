@@ -26,11 +26,13 @@ function number(value) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
-// A list answer is { data: [...], meta: {...} }. Returns null for anything
-// else, and drops list entries that are not objects.
+// A list answer is { data: [...], meta: {...} }. Drops list entries that are
+// not objects. Returns null for anything else, and for a list where no entry
+// survives, so a broken answer never replaces a good one.
 export function cleanPage(page) {
   if (!page || typeof page !== 'object' || !Array.isArray(page.data)) return null;
   const data = page.data.filter((match) => match !== null && typeof match === 'object' && !Array.isArray(match));
+  if (page.data.length > 0 && data.length === 0) return null;
   const meta = page.meta !== null && typeof page.meta === 'object' ? page.meta : {};
   return { data, meta };
 }
@@ -54,7 +56,8 @@ function hasGames(score) {
     Array.isArray(score.games) &&
     score.games.length >= 2 &&
     Array.isArray(score.games[0]) &&
-    Array.isArray(score.games[1])
+    Array.isArray(score.games[1]) &&
+    score.games[0].length + score.games[1].length > 0
   );
 }
 

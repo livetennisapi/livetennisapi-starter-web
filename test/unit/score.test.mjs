@@ -85,6 +85,14 @@ test('cleanPage keeps a list answer and refuses anything else', () => {
   assert.equal(cleanPage([]), null);
   assert.deepEqual(cleanPage({ data: [null, 1, [], { id: 1 }], meta: null }), { data: [{ id: 1 }], meta: {} });
   assert.deepEqual(cleanPage(sample).data.length, sample.data.length);
+  assert.equal(cleanPage({ data: [null, 1] }), null, 'a list with nothing usable is a broken answer');
+  assert.deepEqual(cleanPage({ data: [] }), { data: [], meta: {} }, 'an empty list is a real answer');
+});
+
+test('empty set lists mean no score yet, not set 0', () => {
+  const view = matchView({ id: 3, players: {}, score: { sets: [0, 0], games: [[], []], points: ['0', '0'], server: 1 } });
+  assert.equal(view.known, false);
+  assert.equal(view.stage, '');
 });
 
 test('sorting does not change the input array', () => {

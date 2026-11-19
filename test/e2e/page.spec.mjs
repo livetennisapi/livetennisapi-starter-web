@@ -151,14 +151,27 @@ test.describe('live mode, with the API answered by the test', () => {
     await expect.poll(() => calls.length).toBe(2);
   });
 
-  test('a rejected key stops the refresh', async ({ page }) => {
+  test('a rejected key holds every refresh for an hour', async ({ page }) => {
     await page.clock.install({ time: new Date('2026-01-05T12:00:00Z') });
     const calls = await mockApi(page, () => ({ status: 401, body: JSON.stringify({ error: 'unauthorized' }) }));
     await page.goto('/live/');
     await expect(page.locator('#alert')).toContainText('The API did not accept this key.');
 
-    await page.clock.fastForward('01:00:00');
+    await page.clock.fastForward('59:00');
     await page.waitForTimeout(200);
+    expect(calls).toHaveLength(1);
+
+    await page.clock.fastForward('01:10');
+    await expect.poll(() => calls.length).toBe(2);
+  });
+
+  test('a browser that refuses the lock still refreshes', async ({ page }) => {
+    await page.addInitScript(() => {
+      navigator.locks.request = () => Promise.reject(new DOMException('The request was denied.', 'SecurityError'));
+    });
+    const calls = await mockApi(page);
+    await page.goto('/live/');
+    await expect(page.locator('.card')).toHaveCount(6);
     expect(calls).toHaveLength(1);
   });
 

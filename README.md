@@ -50,12 +50,12 @@ On a static host, set `LIVETENNISAPI_KEY` in the host's settings instead. The bu
 
 ## How the refresh stays inside the free plan
 
-The [FREE plan](https://docs.livetennisapi.com/errors-and-rate-limits.html) allows 30 requests a minute and 100 a day. The page spends one request per refresh and asks for up to 100 live matches in it. The client's own retries are off, so a failed refresh also costs one request and waits for the next one.
+The [FREE plan](https://docs.livetennisapi.com/errors-and-rate-limits.html) allows 30 requests a minute and 100 a day. The page spends one request per refresh and asks for up to 100 live matches in it. The client's own retries are off, so a failed refresh is still one request, and it waits for the next one. A 429, 403 or 404 does not count against the day's 100.
 
 - It refreshes every 15 minutes (`REFRESH_INTERVAL_MS` in [`src/limits.js`](src/limits.js)). That is 96 requests in 24 hours.
 - A reload or a second tab inside those 15 minutes reuses the last answer from `localStorage` instead of calling again.
 - A hidden tab does not refresh. It catches up when you come back.
-- When the day's allowance is spent, the page waits until the reset time the API sends. When the API key is rejected, it stops and says so. A reload tries once more.
+- When the day's allowance is spent, the page waits until the reset time the API sends. When the API key is rejected, every open tab says so and waits an hour before it tries again.
 
 A unit test fails if the interval would break the documented limits. To refresh faster you need a paid plan, and with a paid plan the API key belongs on a server, not in this page.
 

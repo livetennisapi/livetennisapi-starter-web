@@ -26,13 +26,15 @@ const inside = relative(root, outdir).split(sep).join('/');
 if (inside !== 'dist' && !/^\.e2e\/[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*$/.test(inside)) {
   throw new Error('--outdir must be dist or a folder under .e2e/');
 }
-// Follow symlinks: the real folder must still be inside the project.
+// Follow symlinks: the real folder must pass the same rule, so a link
+// under .e2e cannot lead the build into src/, public/ or out of the project.
 let probe = outdir;
 while (!existsSync(probe)) probe = dirname(probe);
 const realRoot = realpathSync(root);
-const realProbe = realpathSync(probe);
-if (realProbe !== realRoot && !realProbe.startsWith(realRoot + sep)) {
-  throw new Error(`${values.outdir} points outside the project, so it is left alone`);
+const realInside = relative(realRoot, realpathSync(probe)).split(sep).join('/');
+const allowed = realInside === '' || realInside === 'dist' || realInside === '.e2e' || realInside.startsWith('dist/') || realInside.startsWith('.e2e/');
+if (!allowed || (probe !== root && realInside === '')) {
+  throw new Error(`${values.outdir} leads outside dist and .e2e, so it is left alone`);
 }
 // The build empties its output folder first. It only does that to a folder
 // it made itself, which it marks with this file.

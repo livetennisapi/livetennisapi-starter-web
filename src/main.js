@@ -37,8 +37,21 @@ async function startSample() {
 // the API, so two open tabs never refresh at the same moment. Browsers
 // without the Web Locks API run the check directly.
 const LOCK_NAME = 'livetennisapi-starter-web:refresh';
-function withLock(task) {
-  return globalThis.navigator?.locks ? globalThis.navigator.locks.request(LOCK_NAME, task) : task();
+async function withLock(task) {
+  const locks = globalThis.navigator?.locks;
+  if (!locks) return task();
+  let ran = false;
+  try {
+    return await locks.request(LOCK_NAME, () => {
+      ran = true;
+      return task();
+    });
+  } catch (error) {
+    // A browser that refuses the lock (a sandboxed frame, for one) still gets
+    // its refresh, just without the cross-tab guard.
+    if (ran) throw error;
+    return task();
+  }
 }
 
 // Some browsers throw just for reading localStorage when site data is
@@ -76,7 +89,6 @@ function startLive() {
   const store = createStore(browserStorage(), API_KEY);
   let timer = null;
   let running = false;
-  let stopped = false;
   let shownFetchedAt = null;
 
   function show(state, next) {
@@ -86,6 +98,10 @@ function startLive() {
     }
     const text = state.fetchedAt ? messages.updated(timeLabel(state.fetchedAt), timeLabel(next)) : messages.waiting(timeLabel(next));
     renderStatus(root, { mode: 'live', text });
+    // The problem is saved with the record, so every tab shows the same one
+    // and a good answer in any tab clears it everywhere.
+    const say = state.problem ? messages.errors[state.problem] : '';
+    renderAlert(root, typeof say === 'function' ? say(timeLabel(next)) : say);
   }
 
   function schedule(at) {
@@ -97,52 +113,43 @@ function startLive() {
     return nextRefreshAt({ now, lastAttemptAt: state.lastAttemptAt, notBefore: state.notBefore, interval: REFRESH_INTERVAL_MS });
   }
 
-  // Calls the API if a refresh is due. Returns undefined when no request
-  // went out, null after a good answer, or what went wrong.
+  // Runs while this tab holds the lock: calls the API if a refresh is due
+  // and the tab is still in view, and saves what came back.
   async function refreshIfDue() {
     const now = Date.now();
-    if (dueAt(store.load(), now) > now) return undefined;
+    if (document.hidden || dueAt(store.load(), now) > now) return;
 
     store.save({ lastAttemptAt: now });
     try {
       const page = cleanPage(await client.listMatches({ status: 'live', limit: PAGE_LIMIT }));
       if (!page) throw new Error('The API answer had no list of matches');
-      store.save({ fetchedAt: Date.now(), page, notBefore: null });
-      return null;
+      store.save({ fetchedAt: Date.now(), page, notBefore: null, problem: null });
     } catch (error) {
       const problem = describeError(error, Date.now());
-      if (problem.notBefore != null) store.save({ notBefore: problem.notBefore });
-      return problem;
+      store.save({ notBefore: problem.notBefore, problem: problem.kind });
     }
   }
 
   async function tick() {
     clearTimeout(timer);
-    if (stopped || running) return;
+    if (running) return;
     if (document.hidden) {
       renderStatus(root, { mode: 'live', text: messages.paused });
       return;
     }
 
     running = true;
-    let problem;
     try {
-      problem = await withLock(refreshIfDue);
+      await withLock(refreshIfDue);
+    } catch {
+      // refreshIfDue saves its own errors. Anything else waits for the next
+      // refresh like any failed request.
     } finally {
       running = false;
     }
 
     const state = store.load();
     const next = dueAt(state, Date.now());
-    if (problem !== undefined) {
-      const say = problem ? messages.errors[problem.kind] : '';
-      renderAlert(root, typeof say === 'function' ? say(timeLabel(next)) : say);
-    }
-    if (problem?.stop) {
-      stopped = true;
-      renderStatus(root, { mode: 'live', text: '' });
-      return;
-    }
     // Schedule first, so a page that fails to draw still refreshes later.
     schedule(next);
     show(state, next);
@@ -151,9 +158,9 @@ function startLive() {
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) tick();
   });
-  // Another tab saved a newer answer: show it here too and follow its timing.
+  // Another tab saved a newer record: show it here too and follow its timing.
   globalThis.addEventListener('storage', (event) => {
-    if (event.key !== store.key || stopped || running) return;
+    if (event.key !== store.key || running) return;
     const state = store.load();
     const next = dueAt(state, Date.now());
     schedule(next);

@@ -4,6 +4,7 @@ import { createReadStream } from 'node:fs';
 import { realpath, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
+import { pipeline } from 'node:stream';
 
 const folder = resolve(process.argv[2] ?? 'dist');
 const realFolder = await realpath(folder);
@@ -41,12 +42,15 @@ async function lookup(urlPath) {
   }
 }
 
-const server = createServer(async (request, response) => {
+async function handle(request, response) {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     response.writeHead(405, { Allow: 'GET, HEAD' }).end();
     return;
   }
-  const { pathname } = new URL(request.url ?? '/', 'http://localhost');
+  // Only the path matters. Extra leading slashes are collapsed so a redirect
+  // can never point at another host.
+  const raw = (request.url ?? '/').split('?')[0].split('#')[0];
+  const pathname = '/' + raw.replace(/^[/\\]+/, '');
   const found = await lookup(pathname);
   if (found?.redirect) {
     response.writeHead(301, { Location: found.redirect }).end();
@@ -66,11 +70,16 @@ const server = createServer(async (request, response) => {
     response.end();
     return;
   }
-  // A file deleted or locked between stat() and the read (for example during
-  // a rebuild) ends this one response instead of crashing the server.
-  createReadStream(file)
-    .on('error', () => response.destroy())
-    .pipe(response);
+  // pipeline() closes the file when the browser goes away or the read fails
+  // (a file deleted during a rebuild), instead of leaking it or crashing.
+  pipeline(createReadStream(file), response, () => {});
+}
+
+const server = createServer((request, response) => {
+  handle(request, response).catch(() => {
+    if (!response.headersSent) response.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+    response.end('Bad request\n');
+  });
 });
 
 server.listen(port, '127.0.0.1', () => {

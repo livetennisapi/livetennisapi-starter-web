@@ -27,8 +27,8 @@ export const messages = {
   scoreCaption: (p1, p2, summary) => (summary ? `${p1} against ${p2}, ${summary}` : `${p1} against ${p2}`),
 
   errors: {
-    auth: 'The API did not accept this key. Check LIVETENNISAPI_KEY, then build again.',
-    plan: 'The plan on this API key does not cover live matches. Plans are listed at livetennisapi.com/pricing.',
+    auth: (next) => `The API did not accept this key. Check LIVETENNISAPI_KEY and build again. The page tries again at ${next}.`,
+    plan: (next) => `The plan on this API key does not cover live matches. The page tries again at ${next}.`,
     daily: (next) => `This API key has used its requests for today. The page tries again at ${next}.`,
     throttled: (next) => `The API has paused this key for calling too often. The page tries again at ${next}.`,
     busy: (next) => `The API asked the page to slow down. It tries again at ${next}.`,
