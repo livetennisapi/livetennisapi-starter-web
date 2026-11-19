@@ -38,7 +38,7 @@
     "livetennisapi": "1.10.2"
   },
   "devDependencies": {
-    "@playwright/test": "1.65.0",
+    "@playwright/test": "1.65.1",
     "esbuild": "0.28.2"
   }
 }
