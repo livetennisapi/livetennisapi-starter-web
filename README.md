@@ -4,7 +4,7 @@
 
 **A live tennis scores page in plain HTML and JavaScript, built on the official [Live Tennis API](https://livetennisapi.com) client.**
 
-[Website](https://livetennisapi.com) · [Docs](https://docs.livetennisapi.com) · [Pricing](https://livetennisapi.com/pricing) · [Changelog](https://docs.livetennisapi.com/changelog.html) · [Get a free key](https://livetennisapi.com/subscribe/free)
+[Website](https://livetennisapi.com) · [Docs](https://docs.livetennisapi.com) · [Pricing](https://livetennisapi.com/pricing) · [Changelog](https://docs.livetennisapi.com/changelog.html) · [Dashboard](https://livetennisapi.com/account/) · [Get a free API key](https://livetennisapi.com/subscribe/free)
 
 [![CI](https://github.com/livetennisapi/livetennisapi-starter-web/actions/workflows/ci.yml/badge.svg)](https://github.com/livetennisapi/livetennisapi-starter-web/actions/workflows/ci.yml)
 [![livetennisapi on npm](https://img.shields.io/npm/v/livetennisapi.svg?label=livetennisapi)](https://www.npmjs.com/package/livetennisapi)
@@ -44,18 +44,18 @@ Without an API key, the page reads [`public/sample/live-matches.json`](public/sa
 
 3. Run `npm start` again.
 
-You can also skip the file and set the variable for one build: `LIVETENNISAPI_KEY=your_key npm run build`. The environment wins over `.env`. The file is in `.gitignore`, so the API key stays out of your commits.
+On a static host, set `LIVETENNISAPI_KEY` in the host's settings instead. The build reads it from the environment, and the environment wins over `.env`. The file is in `.gitignore`, so the API key stays out of your commits and your shell history.
 
 **Use a FREE key only.** The build writes the API key into `dist/app.js`, and anyone who opens the page can read it there. The client's own [README](https://github.com/livetennisapi/livetennisapi-js#install) says the same: a free API key in browser code is fine, a paid one never is. Every visitor also spends the same key's daily allowance. A page for many people needs a small server that holds the key and caches the answer.
 
 ## How the refresh stays inside the free plan
 
-The [FREE plan](https://docs.livetennisapi.com/errors-and-rate-limits.html) allows 30 requests a minute and 100 a day. The page spends one request per refresh and asks for up to 100 live matches in it.
+The [FREE plan](https://docs.livetennisapi.com/errors-and-rate-limits.html) allows 30 requests a minute and 100 a day. The page spends one request per refresh and asks for up to 100 live matches in it. The client's own retries are off, so a failed refresh also costs one request and waits for the next one.
 
 - It refreshes every 15 minutes (`REFRESH_INTERVAL_MS` in [`src/limits.js`](src/limits.js)). That is 96 requests in 24 hours.
 - A reload or a second tab inside those 15 minutes reuses the last answer from `localStorage` instead of calling again.
 - A hidden tab does not refresh. It catches up when you come back.
-- When the day's allowance is spent, the page waits until the reset time the API sends. When the key is rejected, it stops and says so.
+- When the day's allowance is spent, the page waits until the reset time the API sends. When the API key is rejected, it stops and says so. A reload tries once more.
 
 A unit test fails if the interval would break the documented limits. To refresh faster you need a paid plan, and with a paid plan the API key belongs on a server, not in this page.
 
@@ -63,9 +63,11 @@ A unit test fails if the interval would break the documented limits. To refresh 
 
 The **Deploy to Netlify** button above copies this repository to your GitHub account and builds it with the settings in [`netlify.toml`](netlify.toml). The first deploy shows the sample data. To go live:
 
-1. In Netlify, open your site, then **Site configuration**, then **Environment variables**.
-2. Add `LIVETENNISAPI_KEY` with your free key.
-3. Open **Deploys** and trigger a new deploy.
+1. In Netlify, open your project, then **Project configuration**, then **Environment variables**.
+2. Add `LIVETENNISAPI_KEY` with your free API key. Leave **Contains secret values** unticked. Netlify fails any build that puts a marked secret into the output, and this page has to carry the key.
+3. Open **Deploys** and choose **Trigger deploy**, then **Deploy project**.
+
+If Netlify's [smart detection](https://docs.netlify.com/build/environment-variables/secrets-controller/) still stops the build, add the key to `SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES` as that page describes.
 
 Any static host works the same way: run `npm run build` and publish `dist/`.
 
@@ -78,11 +80,14 @@ Any static host works the same way: run `npm run build` and publish `dist/`.
 | `src/refresh.js` | When the next request can go out, and what each API error means |
 | `src/score.js` | Reads a match into rows and columns with the client's `gamesForSet` |
 | `src/render.js` | Builds the match cards (text only, never HTML from the API) |
-| `src/messages.js` | Every sentence the page shows |
+| `src/store.js` | Shares the last answer and the last request time between reloads and tabs |
+| `src/messages.js` | Every sentence the script shows |
 | `src/index.html`, `src/styles.css` | The page and its styles |
 | `public/sample/live-matches.json` | The keyless sample |
 | `scripts/build.mjs` | Bundles the page with esbuild into `dist/` |
 | `scripts/serve.mjs` | A small local server for `npm start` |
+| `scripts/truthcheck.sh` | Fails CI if a stale product fact shows up in the text |
+| `test/` | Unit tests (`node --test`) and browser tests (Playwright) |
 
 ## Tests
 

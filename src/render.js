@@ -63,9 +63,9 @@ function scoreTable(view) {
   );
 }
 
-function matchCard(match) {
+function matchCard(match, index) {
   const view = matchView(match);
-  const titleId = `match-${view.id}`;
+  const titleId = `match-${index}`;
   const body = view.known
     ? scoreTable(view)
     : el(
@@ -97,7 +97,7 @@ function matchCard(match) {
   );
 }
 
-export function renderMatches(root, page, { mode, nextLabel }) {
+export function renderMatches(root, page, { mode }) {
   const matches = sortMatches(page?.data ?? []);
   const count = root.querySelector('#count');
   const note = root.querySelector('#partial');
@@ -108,11 +108,11 @@ export function renderMatches(root, page, { mode, nextLabel }) {
   count.textContent = mode === 'sample' ? messages.sampleCount(matches.length) : messages.liveCount(matches.length);
   const total = page?.meta?.total;
   const more = page?.meta?.has_more === true;
-  note.textContent = more && typeof total === 'number' ? messages.partial(matches.length, total) : '';
+  note.textContent = !more ? '' : typeof total === 'number' ? messages.partial(matches.length, total) : messages.partialUnknown(matches.length);
   note.hidden = !note.textContent;
 
-  list.replaceChildren(...matches.map(matchCard));
-  empty.textContent = matches.length === 0 ? messages.empty(nextLabel ?? '') : '';
+  list.replaceChildren(...matches.map((match, index) => matchCard(match, index)));
+  empty.textContent = matches.length === 0 ? messages.empty : '';
   empty.hidden = matches.length !== 0;
 }
 

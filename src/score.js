@@ -1,4 +1,4 @@
-import { formatScore, gamesForSet } from 'livetennisapi';
+import { gamesForSet } from 'livetennisapi';
 
 const TOURS = [
   ['atp', 'ATP'],
@@ -14,6 +14,27 @@ export function tourLabel(tour) {
   return TOUR_LABEL.get(tour) ?? 'Other';
 }
 
+// Only strings and finite numbers are shown. Anything else in a field (an
+// object, null, a missing key) shows as empty instead of breaking the page.
+function text(value) {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return '';
+}
+
+function number(value) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+// A list answer is { data: [...], meta: {...} }. Returns null for anything
+// else, and drops list entries that are not objects.
+export function cleanPage(page) {
+  if (!page || typeof page !== 'object' || !Array.isArray(page.data)) return null;
+  const data = page.data.filter((match) => match !== null && typeof match === 'object' && !Array.isArray(match));
+  const meta = page.meta !== null && typeof page.meta === 'object' ? page.meta : {};
+  return { data, meta };
+}
+
 // ATP first, then WTA, Challenger, ITF and juniors, then anything without a
 // tour. Inside a tour, by tournament name, then by match id so the order is
 // stable between refreshes.
@@ -21,9 +42,9 @@ export function sortMatches(matches) {
   return [...matches].sort((a, b) => {
     const tour = (TOUR_RANK.get(a.tour) ?? TOURS.length) - (TOUR_RANK.get(b.tour) ?? TOURS.length);
     if (tour !== 0) return tour;
-    const name = String(a.tournament ?? '').localeCompare(String(b.tournament ?? ''));
+    const name = text(a.tournament).localeCompare(text(b.tournament));
     if (name !== 0) return name;
-    return (a.id ?? 0) - (b.id ?? 0);
+    return number(a.id) - number(b.id);
   });
 }
 
@@ -37,10 +58,6 @@ function hasGames(score) {
   );
 }
 
-function cell(value) {
-  return value === undefined || value === null ? '' : String(value);
-}
-
 // Everything the card needs, read from one Match object. `score.games` is
 // player-major ([[p1 set 1, p1 set 2], [p2 set 1, p2 set 2]]), so the sets
 // are read through gamesForSet() from the client instead of by hand.
@@ -51,25 +68,27 @@ export function matchView(match) {
   const sets = [];
   for (let index = 0; index < setCount; index += 1) {
     const [p1, p2] = gamesForSet(score, index);
-    sets.push([cell(p1), cell(p2)]);
+    sets.push([text(p1), text(p2)]);
   }
-  const points = known && Array.isArray(score.points) ? score.points : [];
+  const points = known && Array.isArray(score.points) ? [text(score.points[0]), text(score.points[1])] : ['', ''];
+  const games = sets.map(([p1, p2]) => `${p1}-${p2}`).join(' ');
   const server = score?.server === 1 || score?.server === 2 ? score.server : null;
   const tiebreak = known && score.is_tiebreak === true;
 
   return {
-    id: match.id,
     tour: tourLabel(match.tour),
-    tournament: match.tournament || 'Unnamed tournament',
-    round: match.round || '',
+    tournament: text(match.tournament) || 'Unnamed tournament',
+    round: text(match.round),
     doubles: match.draw === 'doubles',
-    players: [match.players?.p1?.name || 'TBA', match.players?.p2?.name || 'TBA'],
+    players: [text(match.players?.p1?.name) || 'TBA', text(match.players?.p2?.name) || 'TBA'],
     known,
     sets,
-    points: [cell(points[0]), cell(points[1])],
+    points,
     server,
     tiebreak,
     stage: !known ? '' : tiebreak ? `Set ${setCount}, tiebreak` : `Set ${setCount}`,
-    summary: known ? formatScore(score) : '',
+    // The same text formatScore() from the client gives, built from the
+    // checked values above: 6-4 3-6 4-3 (40-30).
+    summary: points[0] || points[1] ? `${games} (${points[0]}-${points[1]})` : games,
   };
 }

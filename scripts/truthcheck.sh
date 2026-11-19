@@ -24,6 +24,7 @@ forbid() { # forbid <label> <regex>
 # The FREE tier is 100/day (quota grid of 2026-08-06) — older figures are wrong.
 forbid "stale 100k daily quota"        '(100,000|100k)( requests| calls)?( ?/ ?| per )day'
 forbid "free tier paired with 1k/day"  '[Ff]ree[^.]{0,60}(1,000|1k)( requests| calls)?( ?/ ?| per )day'
+forbid "free plan paired with 1k a day"  'free plan.{0,160}(1,000|1k)( requests| calls)? a day'
 # Docs live at docs.livetennisapi.com, not under the marketing site.
 forbid "wrong docs URL"                'livetennisapi\.com/docs'
 # Org identity only — no personal handle in anything machine-read.

@@ -51,10 +51,30 @@ test('a failed write never rolls the last request time back', () => {
   assert.equal(store.load().lastAttemptAt, 500);
 });
 
+test('a time saved by a clock that ran fast is dropped, not waited for', () => {
+  const storage = memoryStorage();
+  const hoursAhead = Date.now() + 3 * 60 * 60 * 1000;
+  storage.setItem(createStore(storage).key, JSON.stringify({ lastAttemptAt: hoursAhead, fetchedAt: hoursAhead, page }));
+  const store = createStore(storage);
+  assert.deepEqual(store.load(), { lastAttemptAt: null, notBefore: null, fetchedAt: null, page: null });
+  const now = Date.now();
+  store.save({ lastAttemptAt: now });
+  assert.equal(createStore(storage).load().lastAttemptAt, now);
+});
+
+test('a new API key starts with its own record', () => {
+  const storage = memoryStorage();
+  createStore(storage, 'twjp_old').save({ lastAttemptAt: 100, notBefore: Date.now() + 3600 * 1000 });
+  assert.deepEqual(createStore(storage, 'twjp_new').load(), { lastAttemptAt: null, notBefore: null, fetchedAt: null, page: null });
+  assert.equal(createStore(storage, 'twjp_old').load().lastAttemptAt, 100);
+  assert.notEqual(createStore(storage, 'twjp_old').key, createStore(storage, 'twjp_new').key);
+});
+
 test('junk in storage is ignored', () => {
   const storage = memoryStorage();
-  storage.setItem('livetennisapi-starter-web:v1', '{"lastAttemptAt":"soon","page":{"data":"nope"}}');
+  const { key } = createStore(storage);
+  storage.setItem(key, '{"lastAttemptAt":"soon","page":{"data":"nope"}}');
   assert.deepEqual(createStore(storage).load(), { lastAttemptAt: null, notBefore: null, fetchedAt: null, page: null });
-  storage.setItem('livetennisapi-starter-web:v1', 'not json');
+  storage.setItem(key, 'not json');
   assert.equal(createStore(storage).load().page, null);
 });

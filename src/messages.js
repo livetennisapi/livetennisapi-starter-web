@@ -1,4 +1,5 @@
-// Every sentence the page shows, in one place, so the copy is easy to change.
+// Every sentence the script shows, in one place, so the copy is easy to change.
+// The fixed text (header, notice, footer) is in index.html.
 // `time` is a short local clock time such as 21:55.
 
 export const messages = {
@@ -13,7 +14,8 @@ export const messages = {
   liveCount: (count) => (count === 1 ? '1 live match' : `${count} live matches`),
   sampleCount: (count) => (count === 1 ? '1 sample match' : `${count} sample matches`),
   partial: (shown, total) => `Showing the first ${shown} of ${total}.`,
-  empty: (next) => `No matches are live right now. The page checks again at ${next}.`,
+  partialUnknown: (shown) => `Showing the first ${shown}. More matches are live.`,
+  empty: 'No matches are live right now.',
   noScore: 'No score yet.',
   serving: 'serving',
   playerColumn: 'Player',

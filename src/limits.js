@@ -5,8 +5,9 @@
 export const FREE_REQUESTS_PER_MINUTE = 30;
 export const FREE_REQUESTS_PER_DAY = 100;
 
-// One refresh is one request: GET /matches?status=live with limit=100 returns
-// every live match on one page in a normal day.
+// One refresh is one request: GET /matches?status=live&limit=100, with the
+// client's own retries turned off (src/main.js). When more than 100 matches
+// are live, the page shows the first 100 and says how many there are.
 //
 // Fifteen minutes is 96 refreshes in 24 hours. That leaves 4 requests a day
 // for page loads with an empty cache. Lower it only with a paid key, and a

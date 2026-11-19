@@ -49,9 +49,10 @@ test('a daily 429 waits until resets_at', () => {
   assert.deepEqual(describeError(error, NOW), { kind: 'daily', stop: false, notBefore: Date.parse('2026-01-06T00:00:00Z') });
 });
 
-test('a per-minute 429 waits Retry-After seconds', () => {
+test('a per-minute 429 adds no wait beyond the normal interval', () => {
+  // Retry-After on a per-minute 429 is seconds, far inside the 15 minutes.
   const error = new RateLimited('minute', { status: 429, retryAfter: 20 });
-  assert.deepEqual(describeError(error, NOW), { kind: 'busy', stop: false, notBefore: NOW + 20 * 1000 });
+  assert.deepEqual(describeError(error, NOW), { kind: 'busy', stop: false, notBefore: null });
 });
 
 test('the abuse throttle waits until retry_at_epoch', () => {

@@ -1,14 +1,15 @@
-// Builds the page into dist/ (or the folder given with --outdir).
+// Builds the page into dist/. The tests build into folders under .e2e/.
+// Both are in .gitignore, and --outdir accepts nothing else, so a keyed
+// build can never land in a folder git tracks or in public/.
 //
 //   npm run build                       keyless unless LIVETENNISAPI_KEY is set
-//   LIVETENNISAPI_KEY=twjp_... npm run build
 //
 // The key comes from the environment, or from a .env file next to
 // package.json. It is written into dist/app.js, so anyone who can open the
 // page can read it. Use a FREE key only.
 import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { existsSync, realpathSync } from 'node:fs';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { build } from 'esbuild';
@@ -21,9 +22,17 @@ const { values } = parseArgs({
   },
 });
 const outdir = resolve(root, values.outdir);
-const inside = relative(root, outdir);
-if (!inside || inside.startsWith('..') || isAbsolute(inside)) {
-  throw new Error(`--outdir must be a folder inside ${root}`);
+const inside = relative(root, outdir).split(sep).join('/');
+if (inside !== 'dist' && !/^\.e2e\/[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*$/.test(inside)) {
+  throw new Error('--outdir must be dist or a folder under .e2e/');
+}
+// Follow symlinks: the real folder must still be inside the project.
+let probe = outdir;
+while (!existsSync(probe)) probe = dirname(probe);
+const realRoot = realpathSync(root);
+const realProbe = realpathSync(probe);
+if (realProbe !== realRoot && !realProbe.startsWith(realRoot + sep)) {
+  throw new Error(`${values.outdir} points outside the project, so it is left alone`);
 }
 // The build empties its output folder first. It only does that to a folder
 // it made itself, which it marks with this file.

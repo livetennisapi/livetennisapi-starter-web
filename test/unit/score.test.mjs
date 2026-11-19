@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { matchView, sortMatches, tourLabel } from '../../src/score.js';
+import { cleanPage, matchView, sortMatches, tourLabel } from '../../src/score.js';
 
 const sample = JSON.parse(readFileSync(new URL('../../public/sample/live-matches.json', import.meta.url), 'utf8'));
 const byId = (id) => sample.data.find((match) => match.id === id);
@@ -57,6 +57,34 @@ test('tours sort ATP, WTA, Challenger, ITF, juniors, then the rest', () => {
   assert.deepEqual(order, ['atp', 'atp', 'wta', 'challenger', 'itf', 'juniors', null]);
   assert.equal(tourLabel('itf'), 'ITF');
   assert.equal(tourLabel(null), 'Other');
+});
+
+test('odd values in a match show as empty instead of throwing', () => {
+  const hostile = { toString: 1 };
+  const match = {
+    id: hostile,
+    tournament: hostile,
+    round: 42,
+    players: { p1: { name: hostile }, p2: null },
+    score: { sets: [0, 0], games: [[hostile, 3], [null, 'x']], points: [hostile, 'AD'], server: '1', is_tiebreak: 'yes' },
+  };
+  const view = matchView(match);
+  assert.equal(view.tournament, 'Unnamed tournament');
+  assert.equal(view.round, '42');
+  assert.deepEqual(view.players, ['TBA', 'TBA']);
+  assert.deepEqual(view.sets, [['', ''], ['3', 'x']]);
+  assert.deepEqual(view.points, ['', 'AD']);
+  assert.equal(view.server, null);
+  assert.equal(view.tiebreak, false);
+  assert.doesNotThrow(() => sortMatches([match, { id: 1, tournament: 'B' }, {}]));
+});
+
+test('cleanPage keeps a list answer and refuses anything else', () => {
+  assert.equal(cleanPage(undefined), null);
+  assert.equal(cleanPage({ data: 'nope' }), null);
+  assert.equal(cleanPage([]), null);
+  assert.deepEqual(cleanPage({ data: [null, 1, [], { id: 1 }], meta: null }), { data: [{ id: 1 }], meta: {} });
+  assert.deepEqual(cleanPage(sample).data.length, sample.data.length);
 });
 
 test('sorting does not change the input array', () => {
