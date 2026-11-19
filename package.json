@@ -1,0 +1,44 @@
+{
+  "name": "livetennisapi-starter-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A live tennis scores page on the official Live Tennis API JavaScript client. Static HTML and JavaScript with a keyless sample mode.",
+  "keywords": [
+    "tennis",
+    "tennis-api",
+    "live-scores",
+    "live-tennis-api",
+    "starter",
+    "static-site"
+  ],
+  "homepage": "https://livetennisapi.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/livetennisapi/livetennisapi-starter-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/livetennisapi/livetennisapi-starter-web/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Live Tennis API",
+    "url": "https://livetennisapi.com"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/build.mjs && node scripts/serve.mjs dist 8080",
+    "test": "node --test test/unit/*.test.mjs",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "livetennisapi": "1.10.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "esbuild": "0.28.2"
+  }
+}

@@ -1,0 +1,11 @@
+# Netlify reads this file for the Deploy to Netlify button and for every
+# deploy after it. Without LIVETENNISAPI_KEY the site shows the sample data.
+# To go live, add LIVETENNISAPI_KEY (a FREE key) under Project configuration,
+# Environment variables, then trigger a new deploy. Leave "Contains secret
+# values" unticked, since the API key has to end up in the built page.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
