@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: build and test the page
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: sh scripts/truthcheck.sh   # product facts stay current
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'   # the floor in package.json engines
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test          # node --test, no network
+      - name: Install Chromium for the browser tests
+        run: npx playwright install --with-deps --only-shell chromium
+      - run: npm run test:e2e  # the API is answered by the tests, never called

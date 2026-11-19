@@ -1,0 +1,467 @@
+/* Design tokens from livetennisapi.com. Change these to restyle the page. */
+:root {
+  --bg: #0e0e0e;
+  --surface: #141414;
+  --surface-raised: #1b1b1b;
+  --line: #2a2a2a;
+  --ink: #e4e2e1;
+  --muted: #84967e;
+  --accent: #00ff41;
+  --accent-ink: #04160c;
+  --warn: #f5a524;
+  --danger: #ff8a7a;
+  --radius: 6px;
+  --maxw: 1140px;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --disp: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.55 var(--sans);
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--disp);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 10;
+  padding: 12px 16px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* Header */
+
+.site-header {
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  flex: none;
+  border-radius: 12px;
+}
+
+.brand img {
+  display: block;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.tagline {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Status line, alert and the keyless notice */
+
+main {
+  flex: 1;
+  padding-block: 20px 40px;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 32px;
+  font: 500 13px/1.5 var(--mono);
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+  font: 600 12px/1.5 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge[hidden] {
+  display: none;
+}
+
+.badge.sample {
+  color: var(--warn);
+}
+
+.badge.live {
+  color: var(--accent);
+}
+
+.badge.live::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.alert {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+}
+
+.alert[hidden],
+.notice[hidden] {
+  display: none;
+}
+
+.notice {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.notice-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  margin-top: 4px;
+}
+
+.notice-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+/* Match list */
+
+.matches {
+  margin-top: 24px;
+}
+
+.matches:focus {
+  outline: none;
+}
+
+.matches h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+#partial {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.cards {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+}
+
+.card {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px 10px;
+}
+
+.card-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 4px 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tour {
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font: 600 11px/1.6 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.event {
+  min-width: 0;
+}
+
+.event h3 {
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.round {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font: 600 12px/1.6 var(--mono);
+  white-space: nowrap;
+}
+
+.stage .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Score table */
+
+.score {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.score thead th {
+  color: var(--muted);
+  font: 500 11px/1.6 var(--mono);
+  text-align: center;
+  padding: 4px 0;
+}
+
+.score tbody th,
+.score tbody td {
+  padding: 8px 0;
+  height: 44px;
+}
+
+.score tbody tr + tr th,
+.score tbody tr + tr td {
+  border-top: 1px solid var(--line);
+}
+
+.score tbody .player {
+  position: relative;
+  padding: 8px 8px 8px 16px;
+  text-align: left;
+  font-weight: 400;
+}
+
+.player .name {
+  overflow-wrap: anywhere;
+}
+
+.score tbody .is-serving .player {
+  font-weight: 600;
+}
+
+.serve {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.score .set {
+  width: 30px;
+  text-align: center;
+}
+
+.score tbody .set {
+  font: 500 15px/1 var(--mono);
+  color: var(--muted);
+}
+
+.score tbody .set.current {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.score .pts {
+  width: 48px;
+  text-align: center;
+}
+
+.score tbody .pts span {
+  display: inline-block;
+  min-width: 40px;
+  padding: 6px 4px;
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  font: 700 15px/1 var(--mono);
+  color: var(--ink);
+}
+
+.pending {
+  padding: 10px 0 4px;
+}
+
+.pending-names {
+  font-weight: 500;
+}
+
+.empty {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+
+.empty[hidden] {
+  display: none;
+}
+
+/* Footer */
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding-block: 20px 28px;
+  font-size: 14px;
+}
+
+.links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* Five-set matches on a narrow phone: keep the score columns tight so the
+   names keep enough room to wrap between words. */
+@media (max-width: 420px) {
+  .score .set {
+    width: 22px;
+  }
+
+  .score .pts {
+    width: 42px;
+  }
+
+  .score tbody .pts span {
+    min-width: 36px;
+  }
+}
+
+@media (min-width: 720px) {
+  .wrap {
+    padding-inline: 32px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+
+  main {
+    padding-block: 28px 56px;
+  }
+}

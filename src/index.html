@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.livetennisapi.com; img-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>Live tennis scores</title>
+    <meta name="description" content="Live tennis scores for ATP, WTA, Challenger, ITF and juniors, from the Live Tennis API.">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0e0e0e">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#matches">Skip to the matches</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="https://livetennisapi.com">
+          <img src="logo.svg" width="40" height="40" alt="Live Tennis API">
+        </a>
+        <div>
+          <h1>Live tennis scores</h1>
+          <p class="tagline">A starter page for the <a href="https://livetennisapi.com">Live Tennis API</a></p>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="status" role="status">
+        <span id="mode" class="badge" hidden></span>
+        <span id="status-text">Loading live matches.</span>
+      </div>
+
+      <p id="alert" class="alert" role="alert" hidden></p>
+
+      <aside id="notice" class="notice" hidden>
+        <p>You are looking at the bundled sample. Add a free API key to see the matches that are live right now.</p>
+        <p class="notice-links">
+          <a href="https://github.com/livetennisapi/livetennisapi-starter-web#add-your-key">How to add your API key</a>
+          <a href="https://livetennisapi.com/subscribe/free">Get a free API key</a>
+        </p>
+      </aside>
+
+      <section id="matches" class="matches" aria-labelledby="count" tabindex="-1" hidden>
+        <h2 id="count">Live matches</h2>
+        <p id="partial" class="muted" hidden></p>
+        <ol id="list" class="cards"></ol>
+        <p id="empty" class="empty" hidden></p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p class="muted">Built with the official <a href="https://www.npmjs.com/package/livetennisapi">livetennisapi</a> JavaScript client.</p>
+        <nav aria-label="Live Tennis API">
+          <ul class="links">
+            <li><a href="https://livetennisapi.com">Live Tennis API</a></li>
+            <li><a href="https://docs.livetennisapi.com">Docs</a></li>
+            <li><a href="https://livetennisapi.com/pricing">Pricing</a></li>
+            <li><a href="https://docs.livetennisapi.com/changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/livetennisapi/livetennisapi-starter-web">Source</a></li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+
+    <noscript><p class="wrap">This page needs JavaScript to load the scores.</p></noscript>
+  </body>
+</html>
