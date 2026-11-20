@@ -81,9 +81,8 @@ function startLive() {
     // interval, so one refresh is always exactly one request.
     maxRetries: 0,
     timeout: 15_000,
-    // Browsers only allow fetch to be called on window. livetennisapi 1.10.2
-    // keeps a detached copy of the global fetch, which the browser rejects
-    // with "Illegal invocation", so hand it a wrapper that calls window.fetch.
+    // The client works with the browser's own fetch from 1.10.3. This
+    // wrapper is only here for the deadline above.
     fetch: fetchWithDeadline,
   });
   const store = createStore(browserStorage(), API_KEY);
