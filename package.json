@@ -35,7 +35,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "livetennisapi": "1.10.2"
+    "livetennisapi": "1.10.3"
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",
